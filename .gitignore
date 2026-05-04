@@ -21,6 +21,9 @@ pnpm-debug.log*
 # env
 .env*
 
+# supabase
+supabase/.temp/
+
 # vercel
 .vercel
 
