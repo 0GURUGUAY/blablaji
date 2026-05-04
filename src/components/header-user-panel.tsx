@@ -17,6 +17,7 @@ const copy = {
     guest: "Invitado",
     guestHint: "Conectate para ver tu espacio",
     account: "Cuenta",
+    guestAccountCta: "Sea parte",
     vehicle: "Vehiculo",
     messages: "Mensajes",
     admin: "Admin",
@@ -26,6 +27,7 @@ const copy = {
     guest: "Invite",
     guestHint: "Connecte-toi pour voir ton espace",
     account: "Compte",
+    guestAccountCta: "Sea parte",
     vehicle: "Vehicule",
     messages: "Messages",
     admin: "Admin",
@@ -36,6 +38,15 @@ const copy = {
 function getInitials(label: string) {
   const parts = label.split(/\s+/).filter(Boolean).slice(0, 2);
   return parts.map((part) => part[0]?.toUpperCase() ?? "").join("") || "U";
+}
+
+function WelcomeArrowIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+      <path d="M4.166 10h11.667" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="m10.833 5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
@@ -138,15 +149,36 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
       </div>
 
       <div className="flex items-center gap-1 border-l border-[var(--uy-line)] pl-2 text-xs font-semibold">
-        <Link href={accountHref} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
-          {ui.account}
+        <Link
+          href={accountHref}
+          className={[
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-2 transition",
+            user
+              ? "text-slate-600 hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]"
+              : "animate-pulse bg-[#e7ff3f] text-[#1f2a00] shadow-[0_0_18px_rgba(231,255,63,0.75)] hover:bg-[#ddff14]",
+          ].join(" ")}
+        >
+          {user ? ui.account : ui.guestAccountCta}
+          {!user ? <WelcomeArrowIcon /> : null}
         </Link>
-        <Link href={getLocalePath(locale, "/vehicle")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
-          {ui.vehicle}
-        </Link>
-        <Link href={getLocalePath(locale, "/messages")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
-          {ui.messages}
-        </Link>
+        {user ? (
+          <Link href={getLocalePath(locale, "/vehicle")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
+            {ui.vehicle}
+          </Link>
+        ) : (
+          <span aria-disabled="true" className="cursor-not-allowed rounded-full px-3 py-2 text-slate-300">
+            {ui.vehicle}
+          </span>
+        )}
+        {user ? (
+          <Link href={getLocalePath(locale, "/messages")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
+            {ui.messages}
+          </Link>
+        ) : (
+          <span aria-disabled="true" className="cursor-not-allowed rounded-full px-3 py-2 text-slate-300">
+            {ui.messages}
+          </span>
+        )}
         {isAdmin ? (
           <Link href={getLocalePath(locale, "/admin")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
             {ui.admin}

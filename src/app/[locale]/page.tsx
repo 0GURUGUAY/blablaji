@@ -1,10 +1,8 @@
-import Link from "next/link";
-import { AuthCard } from "@/components/auth-card";
 import { AppShell } from "@/components/app-shell";
+import { HomeHeroActions } from "@/components/home-hero-actions";
 import { RideCard } from "@/components/ride-card";
 import { SectionTitle } from "@/components/section-title";
 import { getLocalizedContent } from "@/lib/content";
-import { getLocalePath } from "@/lib/locale";
 import { getValidatedLocale } from "@/lib/validated-locale";
 
 type LocalePageProps = {
@@ -27,14 +25,7 @@ export default async function LocaleHomePage({ params }: LocalePageProps) {
             <h1 className="max-w-3xl font-serif text-3xl leading-tight sm:text-4xl">{content.home.title}</h1>
             <p className="max-w-2xl text-sm leading-6 text-[color:rgba(231,246,255,0.92)] sm:text-base">{content.home.description}</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href={getLocalePath(locale, "/trips")} className="rounded-full bg-[var(--uy-sun)] px-6 py-3 text-sm font-semibold text-[var(--uy-deep-strong)] transition hover:bg-[var(--uy-sun-soft)]">
-              {content.home.searchCta}
-            </Link>
-            <Link href={getLocalePath(locale, "/publish")} className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-[var(--uy-paper)] transition hover:bg-white/10">
-              {content.home.publishCta}
-            </Link>
-          </div>
+          <HomeHeroActions locale={locale} />
         </div>
 
         <div className="grid gap-4 rounded-[32px] border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.94)] p-6 shadow-[0_25px_70px_-45px_rgba(0,91,187,0.42)]">
@@ -102,9 +93,7 @@ export default async function LocaleHomePage({ params }: LocalePageProps) {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <AuthCard locale={locale} />
-
+      <section>
         <article className="rounded-[32px] bg-[linear-gradient(160deg,var(--uy-deep),#0a78d1)] p-8 text-[var(--uy-paper)]">
           <SectionTitle
             eyebrow={content.home.reviewsEyebrow}

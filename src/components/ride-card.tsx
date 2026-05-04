@@ -1,5 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { getLocalizedContent } from "@/lib/content";
 import type { Locale } from "@/lib/locale";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { formatRouteEstimate, getRouteEstimate } from "@/lib/route-estimate";
 import type { Ride } from "@/lib/types";
 
@@ -10,7 +15,32 @@ type RideCardProps = {
 
 export function RideCard({ ride, locale }: RideCardProps) {
   const content = getLocalizedContent(locale);
+  const supabase = getSupabaseBrowserClient();
+  const [session, setSession] = useState<Session | null>(null);
   const routeEstimate = formatRouteEstimate(locale, getRouteEstimate(ride.origin, ride.destination));
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (isMounted) {
+        setSession(data.session);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (isMounted) {
+        setSession(nextSession);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   return (
     <article className="flex h-full flex-col justify-between rounded-[28px] border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.9)] p-6 shadow-[0_25px_60px_-35px_rgba(31,77,107,0.22)]">
@@ -62,9 +92,15 @@ export function RideCard({ ride, locale }: RideCardProps) {
           <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{content.rideLabels.suggestedPrice}</p>
           <p className="font-serif text-3xl text-[var(--uy-deep)]">UYU {ride.priceUyu}</p>
         </div>
-        <button className="rounded-full bg-[var(--uy-deep)] px-5 py-3 text-sm font-semibold text-[var(--uy-paper)] transition hover:bg-[var(--uy-deep-strong)]">
-          {content.rideLabels.bookButton}
-        </button>
+        {session?.user ? (
+          <button className="rounded-full bg-[var(--uy-deep)] px-5 py-3 text-sm font-semibold text-[var(--uy-paper)] transition hover:bg-[var(--uy-deep-strong)]">
+            {content.rideLabels.bookButton}
+          </button>
+        ) : (
+          <span aria-disabled="true" className="cursor-not-allowed rounded-full bg-slate-200 px-5 py-3 text-sm font-semibold text-slate-400">
+            {content.rideLabels.bookButton}
+          </span>
+        )}
       </div>
     </article>
   );

@@ -81,6 +81,11 @@ const copy = {
     resendSuccess: "Hemos reenviado el email de verificacion.",
     resendErrorMissing: "Necesitamos un email para reenviar la verificacion.",
     signOut: "Usar otra direccion",
+    forgotPassword: "Olvide mi contrasena",
+    forgotDescription: "Si ya tienes cuenta, enviaremos un enlace para definir una nueva contrasena.",
+    forgotSubmitIdle: "Enviar enlace de recuperacion",
+    forgotSubmitLoading: "Enviando enlace...",
+    forgotSuccess: "Te enviamos un email para restablecer la contrasena.",
   },
   fr: {
     badge: "Acces securise",
@@ -119,6 +124,11 @@ const copy = {
     resendSuccess: "L'email de verification a ete renvoye.",
     resendErrorMissing: "Nous avons besoin d'un email pour renvoyer la verification.",
     signOut: "Utiliser une autre adresse",
+    forgotPassword: "Mot de passe oublie",
+    forgotDescription: "Si tu as deja un compte, nous enverrons un lien pour definir un nouveau mot de passe.",
+    forgotSubmitIdle: "Envoyer le lien de recuperation",
+    forgotSubmitLoading: "Envoi du lien...",
+    forgotSuccess: "Nous t'avons envoye un email pour reinitialiser le mot de passe.",
   },
 } as const;
 
@@ -135,6 +145,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   const [email, setEmail] = useState(() => getStoredPendingEmail());
   const [password, setPassword] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [profileDraft, setProfileDraft] = useState<UserProfileDraft>({
     fullName: "",
     phone: "",
@@ -253,6 +264,30 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
     if (session?.user) {
       await supabase.auth.signOut();
     }
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError(ui.resendErrorMissing);
+      return;
+    }
+
+    setIsResettingPassword(true);
+    setFeedback(null);
+    setError(null);
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: getAuthEmailRedirectUrl(locale, "/reset-password"),
+    });
+
+    if (resetError) {
+      setError(resetError.message);
+      setIsResettingPassword(false);
+      return;
+    }
+
+    setFeedback(ui.forgotSuccess);
+    setIsResettingPassword(false);
   }
 
   async function handleSignup(event: React.FormEvent<HTMLFormElement>) {
@@ -505,6 +540,19 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
             >
               {isSubmitting ? ui.submitLoading : ui.submitIdle}
             </button>
+
+            <div className="rounded-[28px] border border-[var(--uy-line)] bg-[linear-gradient(180deg,rgba(247,251,253,0.94),rgba(239,247,252,0.78))] p-5">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--uy-deep)]">{ui.forgotPassword}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{ui.forgotDescription}</p>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isResettingPassword}
+                className="mt-4 rounded-full border border-[color:rgba(19,89,135,0.18)] px-5 py-3 text-sm font-semibold text-[var(--uy-deep)] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isResettingPassword ? ui.forgotSubmitLoading : ui.forgotSubmitIdle}
+              </button>
+            </div>
           </form>
         </article>
       </div>

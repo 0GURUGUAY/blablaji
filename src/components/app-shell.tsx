@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { HeaderNavigation } from "@/components/header-navigation";
 import { HeaderUserPanel } from "@/components/header-user-panel";
 import { getLocalizedContent } from "@/lib/content";
 import { getLocalePath, type Locale } from "@/lib/locale";
@@ -7,7 +8,7 @@ import { getLocalePath, type Locale } from "@/lib/locale";
 type AppShellProps = {
   children: ReactNode;
   locale: Locale;
-  path: "/" | "/trips" | "/publish" | "/vehicle" | "/messages" | "/account" | "/admin" | "/welcome";
+  path: "/" | "/trips" | "/publish" | "/vehicle" | "/messages" | "/account" | "/admin" | "/welcome" | "/reset-password";
 };
 
 function UruguaySunMark() {
@@ -46,17 +47,12 @@ function UruguaySunMark() {
 
 export function AppShell({ children, locale, path }: AppShellProps) {
   const content = getLocalizedContent(locale);
-  const navigation = [
-    { href: "/", label: content.navigation.home },
-    { href: "/trips", label: content.navigation.trips },
-    { href: "/publish", label: content.navigation.publish },
-    { href: "/messages", label: content.navigation.messages },
-  ];
+  const shellWidthClass = "max-w-[96rem]";
 
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(247,251,253,0.82)_32%,_rgba(196,232,248,0.25)_64%,_rgba(217,181,109,0.1)_100%)] text-[var(--uy-night)]">
       <header className="sticky top-0 z-30 border-b border-[var(--uy-line)] bg-[color:rgba(255,253,250,0.84)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+        <div className={["mx-auto flex items-center justify-between gap-6 px-6 py-4", shellWidthClass].join(" ")}>
           <Link href={getLocalePath(locale)} className="flex items-center gap-3">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.98),rgba(223,244,255,0.96)_32%,rgba(102,199,255,0.28)_68%,rgba(0,91,187,0.16)_100%)] ring-1 ring-[var(--uy-line)] shadow-[0_16px_35px_-20px_rgba(0,91,187,0.42)]">
               <UruguaySunMark />
@@ -67,17 +63,7 @@ export function AppShell({ children, locale, path }: AppShellProps) {
             </div>
           </Link>
           <div className="hidden items-center gap-3 md:flex">
-            <nav className="items-center gap-2 rounded-full border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.84)] p-1 text-sm md:flex shadow-[0_12px_30px_-24px_rgba(31,77,107,0.45)]">
-              {navigation.map((item) => (
-                <Link
-                  key={item.href}
-                  href={getLocalePath(locale, item.href)}
-                  className="rounded-full px-4 py-2 text-slate-600 transition hover:bg-[var(--uy-deep)] hover:text-[var(--uy-paper)]"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <HeaderNavigation locale={locale} />
             <div className="flex items-center gap-1 rounded-full border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.84)] p-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-[0_12px_30px_-24px_rgba(31,77,107,0.45)]">
               {(["es", "fr"] as const).map((language) => (
                 <Link
@@ -96,9 +82,9 @@ export function AppShell({ children, locale, path }: AppShellProps) {
           </div>
         </div>
       </header>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-16 px-6 py-10">{children}</div>
+      <div className={["mx-auto flex w-full flex-1 flex-col gap-16 px-6 py-10", shellWidthClass].join(" ")}>{children}</div>
       <footer className="mt-6 border-t border-[var(--uy-line)] bg-[color:rgba(255,253,250,0.82)]">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5 text-sm font-medium tracking-[0.08em] text-slate-500">
+        <div className={["mx-auto flex items-center justify-center px-6 py-5 text-sm font-medium tracking-[0.08em] text-slate-500", shellWidthClass].join(" ")}>
           Copyright Max Patissier 2026
         </div>
       </footer>
