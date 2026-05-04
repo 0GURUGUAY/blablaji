@@ -154,7 +154,8 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
         ) : (
           <Link
             href={accountHref}
-            className="inline-flex items-center justify-center rounded-full bg-[var(--uy-deep)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--uy-paper)] transition hover:bg-[#0d6fb7]"
+            className="inline-flex items-center justify-center rounded-full bg-[var(--uy-deep)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.12em] !text-white transition hover:bg-[#0d6fb7] hover:!text-white"
+            style={{ color: "#ffffff" }}
           >
             {ui.guestLogin}
           </Link>
@@ -168,8 +169,9 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
             "inline-flex items-center gap-1.5 rounded-full px-3 py-2 transition",
             user
               ? "text-slate-600 hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]"
-              : "animate-pulse bg-[#e7ff3f] text-[#1f2a00] shadow-[0_0_18px_rgba(231,255,63,0.75)] hover:bg-[#ddff14]",
+              : "animate-pulse bg-[#d62828] !text-white shadow-[0_0_18px_rgba(214,40,40,0.42)] hover:bg-[#b71c1c] hover:!text-white",
           ].join(" ")}
+          style={user ? undefined : { color: "#ffffff" }}
         >
           {user ? ui.account : ui.guestAccountCta}
           {!user ? <WelcomeArrowIcon /> : null}
