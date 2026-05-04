@@ -6,7 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 import { AccountForm } from "@/components/account-form";
 import { routeOptions } from "@/lib/data";
 import { getLocalePath, type Locale } from "@/lib/locale";
-import { isEmailVerified } from "@/lib/supabase/auth";
+import { areSupabaseEmailFeaturesDisabled, isEmailVerified } from "@/lib/supabase/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getAuthEmailRedirectUrl } from "@/lib/supabase/redirect-url";
 import { fetchOwnProfile, saveOwnProfile, type UserProfileDraft } from "@/lib/supabase/profiles";
@@ -174,6 +174,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   const verificationEmail = session?.user?.email ?? email;
   const isVerifiedSession = isEmailVerified(session?.user);
   const isSignIn = mode === "sign-in";
+  const emailFeaturesDisabled = areSupabaseEmailFeaturesDisabled();
 
   useEffect(() => {
     let isMounted = true;
@@ -245,6 +246,10 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   }, [locale, pendingDraft, redirectPath, router, session, supabase, ui.autoSaveError]);
 
   async function handleResendVerification() {
+    if (emailFeaturesDisabled) {
+      return;
+    }
+
     if (!verificationEmail) {
       setError(ui.resendErrorMissing);
       return;
@@ -287,6 +292,10 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   }
 
   async function handleForgotPassword() {
+    if (emailFeaturesDisabled) {
+      return;
+    }
+
     if (!email.trim()) {
       setError(ui.resendErrorMissing);
       return;
@@ -359,7 +368,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
       email,
       password,
       options: {
-        emailRedirectTo: getAuthEmailRedirectUrl(locale),
+        emailRedirectTo: emailFeaturesDisabled ? undefined : getAuthEmailRedirectUrl(locale),
         data: {
           full_name: draft.fullName,
           avatar_url: draft.avatarUrl || null,
@@ -391,7 +400,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
       }
     }
 
-    setFeedback(ui.checkEmail);
+    setFeedback(emailFeaturesDisabled ? ui.success : ui.checkEmail);
     setIsSubmitting(false);
   }
 
@@ -404,7 +413,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   }
 
   if (session?.user) {
-    if (!isVerifiedSession) {
+    if (!emailFeaturesDisabled && !isVerifiedSession) {
       return (
         <section className="grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-start">
           <article className="overflow-hidden rounded-[36px] bg-[linear-gradient(145deg,var(--uy-deep),#0d6fb7_55%,#f6c64d_180%)] p-8 text-[var(--uy-paper)] shadow-[0_32px_80px_-48px_rgba(0,91,187,0.62)] sm:p-10">
@@ -629,7 +638,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
               {isSubmitting ? (isSignIn ? ui.loginSubmitLoading : ui.submitLoading) : (isSignIn ? ui.loginSubmitIdle : ui.submitIdle)}
             </button>
 
-            {isSignIn ? (
+            {isSignIn && !emailFeaturesDisabled ? (
               <div className="rounded-[28px] border border-[var(--uy-line)] bg-[linear-gradient(180deg,rgba(247,251,253,0.94),rgba(239,247,252,0.78))] p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-[var(--uy-deep)]">{ui.forgotPassword}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{ui.forgotDescription}</p>

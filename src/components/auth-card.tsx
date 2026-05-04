@@ -6,7 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 import { isAdminEmail } from "@/lib/admin";
 import { getLocalizedContent } from "@/lib/content";
 import { getLocalePath, type Locale } from "@/lib/locale";
-import { isEmailVerified } from "@/lib/supabase/auth";
+import { areSupabaseEmailFeaturesDisabled, isEmailVerified } from "@/lib/supabase/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getAuthEmailRedirectUrl } from "@/lib/supabase/redirect-url";
 import { fetchOwnProfile } from "@/lib/supabase/profiles";
@@ -27,6 +27,7 @@ export function AuthCard({ locale, initialMode = "sign-in" }: AuthCardProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const emailFeaturesDisabled = areSupabaseEmailFeaturesDisabled();
 
   useEffect(() => {
     let isMounted = true;
@@ -91,7 +92,7 @@ export function AuthCard({ locale, initialMode = "sign-in" }: AuthCardProps) {
           email,
           password,
           options: {
-            emailRedirectTo: getAuthEmailRedirectUrl(locale),
+            emailRedirectTo: emailFeaturesDisabled ? undefined : getAuthEmailRedirectUrl(locale),
           },
         });
 
@@ -104,7 +105,7 @@ export function AuthCard({ locale, initialMode = "sign-in" }: AuthCardProps) {
     }
 
     setSession(data.session ?? null);
-    setFeedback(data.session ? content.authSuccess : content.authCheckEmail);
+    setFeedback(data.session || emailFeaturesDisabled ? content.authSuccess : content.authCheckEmail);
     setIsSubmitting(false);
   }
 
