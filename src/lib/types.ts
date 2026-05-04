@@ -14,6 +14,7 @@ export type Ride = {
   carModel: string;
   status: RideStatus;
   tags: string[];
+  isBookable?: boolean;
 };
 
 export type Conversation = {

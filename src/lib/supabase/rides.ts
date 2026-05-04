@@ -173,6 +173,7 @@ function mapCatalogRide(locale: Locale, ride: PublicRideCatalogRow): Ride {
     carModel: ride.car_model ?? (locale === "fr" ? "Vehicule" : "Vehiculo"),
     status: mapRideStatus(ride.status, ride.seats_available),
     tags: toRideTags(locale, ride.notes),
+    isBookable: true,
   };
 }
 
@@ -302,7 +303,26 @@ export async function fetchOwnRideOffers(client: SupabaseClient, userId: string,
     carModel: vehicleById.get(ride.vehicle_id) ?? "Vehiculo",
     status: mapRideStatus(ride.status, ride.seats_available),
     tags: toRideTags(locale, ride.notes),
+    isBookable: false,
   }));
+}
+
+export async function reserveRideSeat(client: SupabaseClient, rideId: string, pickupNote?: string) {
+  const { data, error } = await client.rpc("reserve_ride_seat", {
+    target_ride_id: rideId,
+    requested_seats: 1,
+    requested_pickup_note: pickupNote?.trim() || null,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (typeof data !== "string" || !data) {
+    throw new Error("Booking could not be created.");
+  }
+
+  return data;
 }
 
 export async function fetchOwnManagedRides(client: SupabaseClient, userId: string): Promise<ManagedRideRecord[]> {

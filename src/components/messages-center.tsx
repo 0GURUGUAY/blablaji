@@ -27,6 +27,8 @@ const copy = {
     loadingMessages: "Cargando mensajes...",
     emptyInbox: "Todavia no tienes conversaciones.",
     emptyConversation: "Selecciona una conversacion o abre una desde una reserva para empezar a coordinar.",
+    linkedOnlyTitle: "Mensajes ligados a un viaje",
+    linkedOnlyDescription: "No hay mensajeria libre: una conversacion solo se crea desde una reserva o un viaje compartido.",
     replyPlaceholder: "Escribir un mensaje claro y util...",
     sendError: "No se pudo enviar el mensaje.",
     inboxError: "No se pudo cargar la mensajeria.",
@@ -44,6 +46,8 @@ const copy = {
     loadingMessages: "Chargement des messages...",
     emptyInbox: "Tu n'as pas encore de conversations.",
     emptyConversation: "Selectionne une conversation ou ouvre-en une depuis une reservation pour commencer a coordonner.",
+    linkedOnlyTitle: "Messages relies a un trajet",
+    linkedOnlyDescription: "Il n'y a pas de messagerie libre : une conversation ne se cree que depuis une reservation ou un trajet partage.",
     replyPlaceholder: "Ecrire un message clair et utile...",
     sendError: "Impossible d'envoyer le message.",
     inboxError: "Impossible de charger la messagerie.",
@@ -267,6 +271,11 @@ export function MessagesCenter({ locale, rideId, passengerId }: MessagesCenterPr
     <section className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
       <aside className="rounded-[32px] border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.88)] p-6 shadow-[0_20px_60px_-45px_rgba(31,77,107,0.22)]">
         <SectionTitle eyebrow={content.messages.eyebrow} title={content.messages.title} description={content.messages.description} />
+
+        <div className="mt-6 rounded-[24px] border border-[color:rgba(19,89,135,0.12)] bg-[linear-gradient(180deg,rgba(247,251,253,0.94),rgba(239,247,252,0.78))] p-4">
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--uy-deep)]">{ui.linkedOnlyTitle}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{ui.linkedOnlyDescription}</p>
+        </div>
 
         {error ? <p className="mt-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">{error}</p> : null}
 
