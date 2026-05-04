@@ -7,7 +7,7 @@ import { getLocalePath, type Locale } from "@/lib/locale";
 type AppShellProps = {
   children: ReactNode;
   locale: Locale;
-  path: "/" | "/trips" | "/publish" | "/vehicle" | "/messages" | "/account" | "/admin";
+  path: "/" | "/trips" | "/publish" | "/vehicle" | "/messages" | "/account" | "/admin" | "/welcome";
 };
 
 function UruguaySunMark() {

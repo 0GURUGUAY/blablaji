@@ -1,20 +1,26 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { isAdminEmail } from "@/lib/admin";
 import { getLocalizedContent } from "@/lib/content";
-import type { Locale } from "@/lib/locale";
+import { getLocalePath, type Locale } from "@/lib/locale";
+import { isEmailVerified } from "@/lib/supabase/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getAuthEmailRedirectUrl } from "@/lib/supabase/redirect-url";
+import { fetchOwnProfile } from "@/lib/supabase/profiles";
 
 type AuthCardProps = {
   locale: Locale;
+  initialMode?: "sign-in" | "sign-up";
 };
 
-export function AuthCard({ locale }: AuthCardProps) {
+export function AuthCard({ locale, initialMode = "sign-in" }: AuthCardProps) {
   const content = getLocalizedContent(locale).home;
+  const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [mode, setMode] = useState<"sign-in" | "sign-up">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [session, setSession] = useState<Session | null>(null);
@@ -24,6 +30,22 @@ export function AuthCard({ locale }: AuthCardProps) {
 
   useEffect(() => {
     let isMounted = true;
+
+    async function maybeRouteToOnboarding(nextSession: Session | null) {
+      if (!nextSession?.user || !isEmailVerified(nextSession.user)) {
+        return;
+      }
+
+      try {
+        const existing = await fetchOwnProfile(supabase, nextSession.user.id);
+
+        if (!existing) {
+          router.push(getLocalePath(locale, "/welcome"));
+        }
+      } catch {
+        // Keep the user on the current screen if the profile lookup fails.
+      }
+    }
 
     void supabase.auth.getSession().then(({ data, error: sessionError }) => {
       if (!isMounted) {
@@ -36,6 +58,7 @@ export function AuthCard({ locale }: AuthCardProps) {
       }
 
       setSession(data.session);
+      void maybeRouteToOnboarding(data.session);
     });
 
     const {
@@ -47,13 +70,14 @@ export function AuthCard({ locale }: AuthCardProps) {
 
       setSession(nextSession);
       setPassword("");
+      void maybeRouteToOnboarding(nextSession);
     });
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [locale, router, supabase]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,7 +87,13 @@ export function AuthCard({ locale }: AuthCardProps) {
 
     const action = mode === "sign-in"
       ? supabase.auth.signInWithPassword({ email, password })
-      : supabase.auth.signUp({ email, password });
+      : supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: getAuthEmailRedirectUrl(locale),
+          },
+        });
 
     const { data, error: authError } = await action;
 
@@ -152,7 +182,7 @@ export function AuthCard({ locale }: AuthCardProps) {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
-              placeholder="nom@exemple.uy"
+              placeholder="nombre@ejemplo.uy"
             />
           </label>
 

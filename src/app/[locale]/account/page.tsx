@@ -1,5 +1,6 @@
 import { AccountForm } from "@/components/account-form";
 import { AppShell } from "@/components/app-shell";
+import { ProfileSetupGate } from "@/components/profile-setup-gate";
 import { getValidatedLocale } from "@/lib/validated-locale";
 
 type LocalePageProps = {
@@ -12,7 +13,9 @@ export default async function LocalizedAccountPage({ params }: LocalePageProps) 
 
   return (
     <AppShell locale={locale} path="/account">
-      <AccountForm locale={locale} />
+      <ProfileSetupGate locale={locale} currentPath="/account">
+        <AccountForm locale={locale} />
+      </ProfileSetupGate>
     </AppShell>
   );
 }

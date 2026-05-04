@@ -41,6 +41,19 @@ npm run lint
 npm run build
 ```
 
+## Supabase Auth
+
+- Active la confirmation email dans `Authentication > Providers > Email`.
+- Configure `Site URL` avec l'URL principale de l'application, par exemple `https://blablaji.vercel.app`.
+- Ajoute aussi dans `Additional Redirect URLs` les URLs utilisees par l'app:
+	- `http://localhost:3001/es/welcome`
+	- `http://localhost:3001/fr/welcome`
+	- `https://blablaji.vercel.app/es/welcome`
+	- `https://blablaji.vercel.app/fr/welcome`
+- Renseigne `NEXT_PUBLIC_APP_URL` dans `.env.local` et dans Vercel avec l'URL publique principale, par exemple `https://blablaji.vercel.app`.
+
+L'application utilise cette URL pour que les emails de confirmation Supabase renvoient directement vers la page welcome localisee.
+
 ## Backend cible recommande
 
 - Authentification: Supabase Auth

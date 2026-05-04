@@ -109,6 +109,7 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
   const avatarUrl = user ? profile?.avatarUrl || null : null;
   const userEmail = user?.email ?? ui.guestHint;
   const isAdmin = isAdminEmail(user?.email);
+  const accountHref = getLocalePath(locale, user ? "/account" : "/welcome");
 
   return (
     <div className="flex items-center gap-3 rounded-full border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.9)] px-2 py-2 shadow-[0_12px_30px_-24px_rgba(31,77,107,0.45)]">
@@ -137,7 +138,7 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
       </div>
 
       <div className="flex items-center gap-1 border-l border-[var(--uy-line)] pl-2 text-xs font-semibold">
-        <Link href={getLocalePath(locale, "/account")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
+        <Link href={accountHref} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">
           {ui.account}
         </Link>
         <Link href={getLocalePath(locale, "/vehicle")} className="rounded-full px-3 py-2 text-slate-600 transition hover:bg-[var(--uy-sky-soft)] hover:text-[var(--uy-deep)]">

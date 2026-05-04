@@ -53,3 +53,17 @@ export type ProductPillar = {
   title: string;
   description: string;
 };
+
+export type PassengerScoreBand = "trusted" | "watch" | "blocked";
+
+export type PassengerScoreCard = {
+  id: string;
+  name: string;
+  score: number;
+  band: PassengerScoreBand;
+  completedTrips: number;
+  cancellationRate: string;
+  noShowCount: number;
+  reportsCount: number;
+  note: string;
+};

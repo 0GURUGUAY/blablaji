@@ -7,6 +7,12 @@ create table public.profiles (
   role text not null check (role in ('rider', 'driver', 'admin')),
   rating numeric(2,1) not null default 5.0,
   completed_rides integer not null default 0,
+  passenger_score integer not null default 100 check (passenger_score between 0 and 100),
+  passenger_score_band text not null default 'trusted' check (passenger_score_band in ('trusted', 'watch', 'blocked')),
+  completed_passenger_trips integer not null default 0,
+  passenger_cancellation_count integer not null default 0,
+  passenger_no_show_count integer not null default 0,
+  passenger_reports_count integer not null default 0,
   is_identity_verified boolean not null default false,
   created_at timestamptz not null default now()
 );

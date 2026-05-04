@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { ProfileSetupGate } from "@/components/profile-setup-gate";
 import { VehicleProfileForm } from "@/components/vehicle-profile-form";
 import { getValidatedLocale } from "@/lib/validated-locale";
 
@@ -12,7 +13,9 @@ export default async function LocalizedVehiclePage({ params }: LocalePageProps) 
 
   return (
     <AppShell locale={locale} path="/vehicle">
-      <VehicleProfileForm locale={locale} />
+      <ProfileSetupGate locale={locale} currentPath="/vehicle">
+        <VehicleProfileForm locale={locale} />
+      </ProfileSetupGate>
     </AppShell>
   );
 }

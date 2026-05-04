@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/locale";
 import type {
   Conversation,
   ModerationCase,
+  PassengerScoreCard,
   ProductPillar,
   Review,
   Ride,
@@ -180,11 +181,30 @@ type SiteContent = {
       opened: string;
       status: string;
     };
+    passengerScoring: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      columns: {
+        passenger: string;
+        score: string;
+        reliability: string;
+        trips: string;
+        alerts: string;
+      };
+      stats: {
+        cancellations: string;
+        noShows: string;
+        reports: string;
+      };
+      bands: Record<PassengerScoreCard["band"], string>;
+    };
   };
   featuredRides: Ride[];
   conversations: Conversation[];
   reviews: Review[];
   moderationCases: ModerationCase[];
+  passengerScorecards: PassengerScoreCard[];
   trustMetrics: TrustMetric[];
   productPillars: ProductPillar[];
 };
@@ -345,6 +365,28 @@ const localizedContent: Record<Locale, SiteContent> = {
       accessDeniedHint: "Conectate con max.patissier@gmail.com para entrar al panel.",
       accessGranted: "Acceso admin validado",
       headers: { subject: "Asunto", reason: "Motivo", severity: "Severidad", opened: "Abierto", status: "Estado" },
+      passengerScoring: {
+        eyebrow: "Scoring pasajeros",
+        title: "Deteccion temprana de buenos y malos pasajeros",
+        description: "Un score simple ayuda a priorizar pasajeros fiables, detectar cancelaciones repetidas, no-shows y perfiles que necesitan revision manual.",
+        columns: {
+          passenger: "Pasajero",
+          score: "Score",
+          reliability: "Fiabilidad",
+          trips: "Viajes",
+          alerts: "Alertas",
+        },
+        stats: {
+          cancellations: "Cancelaciones",
+          noShows: "No-shows",
+          reports: "Reportes",
+        },
+        bands: {
+          trusted: "Confiable",
+          watch: "A vigilar",
+          blocked: "Riesgo alto",
+        },
+      },
     },
     featuredRides: [
       { id: "ride-001", origin: "Jose Ignacio", destination: "Punta del Este", dateLabel: "Hoy", departureTime: "18:10", seatsLeft: 2, priceUyu: 320, driverName: "Lucia S.", driverRating: 4.9, driverTrips: 128, carModel: "Suzuki Vitara", status: "lastSeats", tags: ["Aire acondicionado", "Tablas de surf OK", "Musica tranquila"] },
@@ -366,6 +408,12 @@ const localizedContent: Record<Locale, SiteContent> = {
       { id: "case-001", subject: "Viaje ride-003", reason: "Queja por retraso sin mensaje previo", severity: "medium", openedAt: "Hoy, 08:05", status: "review" },
       { id: "case-002", subject: "Perfil Lucia S.", reason: "Verificacion de licencia y seguro", severity: "low", openedAt: "Ayer, 19:20", status: "closed" },
       { id: "case-003", subject: "Conversacion conv-001", reason: "Reporte por tono inapropiado", severity: "high", openedAt: "Ayer, 17:10", status: "escalated" },
+    ],
+    passengerScorecards: [
+      { id: "psg-001", name: "Sofia M.", score: 94, band: "trusted", completedTrips: 18, cancellationRate: "0%", noShowCount: 0, reportsCount: 0, note: "Siempre confirma y llega a horario." },
+      { id: "psg-002", name: "Bruno T.", score: 71, band: "watch", completedTrips: 9, cancellationRate: "18%", noShowCount: 1, reportsCount: 0, note: "Cancela tarde cuando cambia el plan." },
+      { id: "psg-003", name: "Valentina P.", score: 88, band: "trusted", completedTrips: 13, cancellationRate: "7%", noShowCount: 0, reportsCount: 0, note: "Buena coordinacion y mensajes claros." },
+      { id: "psg-004", name: "Nicolas R.", score: 42, band: "blocked", completedTrips: 5, cancellationRate: "40%", noShowCount: 2, reportsCount: 3, note: "Acumula no-shows y tono conflictivo en mensajes." },
     ],
     trustMetrics: [
       { label: "Ocupacion media", value: "83%", detail: "en los ultimos 7 dias" },
@@ -534,6 +582,28 @@ const localizedContent: Record<Locale, SiteContent> = {
       accessDeniedHint: "Connecte-toi avec max.patissier@gmail.com pour ouvrir le panneau.",
       accessGranted: "Acces admin valide",
       headers: { subject: "Sujet", reason: "Motif", severity: "Severite", opened: "Ouvert", status: "Statut" },
+      passengerScoring: {
+        eyebrow: "Scoring passagers",
+        title: "Detection precoce des bons et mauvais passagers",
+        description: "Un score simple aide a prioriser les passagers fiables et a reperer les annulations repetitives, no-shows et profils a revoir manuellement.",
+        columns: {
+          passenger: "Passager",
+          score: "Score",
+          reliability: "Fiabilite",
+          trips: "Trajets",
+          alerts: "Alertes",
+        },
+        stats: {
+          cancellations: "Annulations",
+          noShows: "No-shows",
+          reports: "Signalements",
+        },
+        bands: {
+          trusted: "Fiable",
+          watch: "A surveiller",
+          blocked: "Risque eleve",
+        },
+      },
     },
     featuredRides: [
       { id: "ride-001", origin: "Jose Ignacio", destination: "Punta del Este", dateLabel: "Aujourd'hui", departureTime: "18:10", seatsLeft: 2, priceUyu: 320, driverName: "Lucia S.", driverRating: 4.9, driverTrips: 128, carModel: "Suzuki Vitara", status: "lastSeats", tags: ["Climatisation", "Surfboards OK", "Musique douce"] },
@@ -555,6 +625,12 @@ const localizedContent: Record<Locale, SiteContent> = {
       { id: "case-001", subject: "Trajet ride-003", reason: "Plainte pour retard sans message", severity: "medium", openedAt: "Aujourd'hui, 08:05", status: "review" },
       { id: "case-002", subject: "Profil Lucia S.", reason: "Verification permis et assurance", severity: "low", openedAt: "Hier, 19:20", status: "closed" },
       { id: "case-003", subject: "Conversation conv-001", reason: "Signalement de ton inapproprie", severity: "high", openedAt: "Hier, 17:10", status: "escalated" },
+    ],
+    passengerScorecards: [
+      { id: "psg-001", name: "Sofia M.", score: 94, band: "trusted", completedTrips: 18, cancellationRate: "0%", noShowCount: 0, reportsCount: 0, note: "Confirme toujours et arrive a l'heure." },
+      { id: "psg-002", name: "Bruno T.", score: 71, band: "watch", completedTrips: 9, cancellationRate: "18%", noShowCount: 1, reportsCount: 0, note: "Annule tard quand le plan change." },
+      { id: "psg-003", name: "Valentina P.", score: 88, band: "trusted", completedTrips: 13, cancellationRate: "7%", noShowCount: 0, reportsCount: 0, note: "Bonne coordination et messages clairs." },
+      { id: "psg-004", name: "Nicolas R.", score: 42, band: "blocked", completedTrips: 5, cancellationRate: "40%", noShowCount: 2, reportsCount: 3, note: "Accumule les no-shows et un ton conflictuel en messagerie." },
     ],
     trustMetrics: [
       { label: "Remplissage moyen", value: "83%", detail: "sur les 7 derniers jours" },
