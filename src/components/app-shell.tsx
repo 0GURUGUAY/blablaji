@@ -48,6 +48,16 @@ function UruguaySunMark() {
 export function AppShell({ children, locale, path }: AppShellProps) {
   const content = getLocalizedContent(locale);
   const shellWidthClass = "max-w-[96rem]";
+  const donationUrl = process.env.NEXT_PUBLIC_DONATION_URL?.trim();
+  const donationCopy = locale === "es"
+    ? {
+        eyebrow: "Apoyar el proyecto",
+        cta: "Hacer una donacion",
+      }
+    : {
+        eyebrow: "Soutenir le projet",
+        cta: "Faire un don",
+      };
 
   return (
     <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(247,251,253,0.82)_32%,_rgba(196,232,248,0.25)_64%,_rgba(217,181,109,0.1)_100%)] text-[var(--uy-night)]">
@@ -84,8 +94,21 @@ export function AppShell({ children, locale, path }: AppShellProps) {
       </header>
       <div className={["mx-auto flex w-full flex-1 flex-col gap-16 px-6 py-10", shellWidthClass].join(" ")}>{children}</div>
       <footer className="mt-6 border-t border-[var(--uy-line)] bg-[color:rgba(255,253,250,0.82)]">
-        <div className={["mx-auto flex items-center justify-center px-6 py-5 text-sm font-medium tracking-[0.08em] text-slate-500", shellWidthClass].join(" ")}>
-          Copyright Max Patissier 2026
+        <div className={["mx-auto flex flex-col gap-4 px-6 py-5 text-sm font-medium tracking-[0.08em] text-slate-500 sm:flex-row sm:items-center sm:justify-between", shellWidthClass].join(" ")}>
+          <p>Copyright Max Patissier 2026</p>
+          {donationUrl ? (
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <span className="text-xs uppercase tracking-[0.22em] text-slate-400">{donationCopy.eyebrow}</span>
+              <a
+                href={donationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-[var(--uy-sun)] px-5 py-3 text-sm font-semibold tracking-normal text-[var(--uy-deep-strong)] transition hover:bg-[var(--uy-sun-soft)]"
+              >
+                {donationCopy.cta}
+              </a>
+            </div>
+          ) : null}
         </div>
       </footer>
     </div>

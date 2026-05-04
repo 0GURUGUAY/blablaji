@@ -57,8 +57,14 @@ const copy = {
     sideTitle: "Un acceso pensado para una comunidad local",
     sideDescription: "La primera impresion importa. Por eso la creacion de cuenta y el perfil se presentan como un recorrido unico, limpio y facil de completar.",
     metrics: ["Perfil visible", "Acceso por email", "Preparado para publicar y reservar"],
+    loginCta: "LOGIN",
+    signupCta: "Crear cuenta",
+    existingAccountPrompt: "Ya tienes una cuenta?",
+    newAccountPrompt: "Primera vez aqui?",
     formTitle: "Crea tu cuenta en un solo paso",
     formDescription: "Email, contrasena y perfil visible en el mismo formulario para que tu cuenta quede lista desde el principio.",
+    signInTitle: "Entra con tu cuenta existente",
+    signInDescription: "Usa tu email y tu contrasena para volver a entrar y continuar donde lo dejaste.",
     email: "Email",
     password: "Contrasena",
     fullName: "Nombre completo",
@@ -70,7 +76,10 @@ const copy = {
     passwordHint: "Minimo 6 caracteres.",
     submitIdle: "Crear mi cuenta completa",
     submitLoading: "Creando cuenta...",
+    loginSubmitIdle: "Entrar",
+    loginSubmitLoading: "Entrando...",
     success: "Cuenta creada y perfil guardado correctamente.",
+    loginSuccess: "Sesion iniciada correctamente.",
     checkEmail: "Cuenta creada. Confirma tu email y vuelve para activar tu perfil completo.",
     autoSaveError: "La cuenta existe, pero no pudimos completar el perfil automaticamente.",
     verifyTitle: "Confirma tu email para activar la cuenta",
@@ -100,8 +109,14 @@ const copy = {
     sideTitle: "Un acces pense pour une communaute locale",
     sideDescription: "La premiere impression compte. C'est pour cela que la creation de compte et le profil sont presentes comme un parcours unique, propre et simple a completer.",
     metrics: ["Profil visible", "Acces email", "Pret a publier et reserver"],
+    loginCta: "LOGIN",
+    signupCta: "Creer un compte",
+    existingAccountPrompt: "Tu as deja un compte ?",
+    newAccountPrompt: "Premiere visite ?",
     formTitle: "Cree ton compte en une seule etape",
     formDescription: "Email, mot de passe et profil visible dans le meme formulaire pour que ton compte soit pret des le depart.",
+    signInTitle: "Entre avec ton compte existant",
+    signInDescription: "Utilise ton email et ton mot de passe pour revenir dans l'application et reprendre ton parcours.",
     email: "Email",
     password: "Mot de passe",
     fullName: "Nom complet",
@@ -113,7 +128,10 @@ const copy = {
     passwordHint: "6 caracteres minimum.",
     submitIdle: "Creer mon compte complet",
     submitLoading: "Creation du compte...",
+    loginSubmitIdle: "Se connecter",
+    loginSubmitLoading: "Connexion...",
     success: "Compte cree et profil enregistre avec succes.",
+    loginSuccess: "Connexion reussie.",
     checkEmail: "Compte cree. Confirme ton email puis reviens pour activer ton profil complet.",
     autoSaveError: "Le compte existe, mais le profil n'a pas pu etre complete automatiquement.",
     verifyTitle: "Confirme ton email pour activer le compte",
@@ -138,6 +156,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   const supabase = getSupabaseBrowserClient();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mode, setMode] = useState<"sign-up" | "sign-in">("sign-up");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +173,7 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
   });
   const verificationEmail = session?.user?.email ?? email;
   const isVerifiedSession = isEmailVerified(session?.user);
+  const isSignIn = mode === "sign-in";
 
   useEffect(() => {
     let isMounted = true;
@@ -295,6 +315,34 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
     setIsSubmitting(true);
     setFeedback(null);
     setError(null);
+
+    if (isSignIn) {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (authError) {
+        setError(authError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      const nextSession = data.session;
+      setSession(nextSession);
+      setFeedback(ui.loginSuccess);
+
+      if (nextSession?.user && isEmailVerified(nextSession.user)) {
+        try {
+          const existing = await fetchOwnProfile(supabase, nextSession.user.id);
+          router.replace(getLocalePath(locale, existing ? redirectPath : "/welcome"));
+          return;
+        } catch {
+          router.replace(getLocalePath(locale, redirectPath));
+          return;
+        }
+      }
+
+      setIsSubmitting(false);
+      return;
+    }
 
     const draft = {
       fullName: profileDraft.fullName.trim(),
@@ -442,8 +490,44 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
 
         <article className="rounded-[32px] border border-[var(--uy-line)] bg-[color:rgba(255,255,255,0.94)] p-8 shadow-[0_24px_70px_-48px_rgba(31,77,107,0.32)]">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--uy-deep)]">{ui.badge}</p>
-          <h3 className="mt-4 font-serif text-2xl text-slate-900 sm:text-3xl">{ui.formTitle}</h3>
-          <p className="mt-3 text-sm leading-7 text-slate-600">{ui.formDescription}</p>
+          <div className="mt-4 rounded-[28px] border border-[color:rgba(19,89,135,0.16)] bg-[linear-gradient(180deg,rgba(255,248,212,0.86),rgba(255,255,255,0.98))] p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-slate-700">{isSignIn ? ui.newAccountPrompt : ui.existingAccountPrompt}</p>
+              <button
+                type="button"
+                onClick={() => setMode(isSignIn ? "sign-up" : "sign-in")}
+                className="inline-flex items-center justify-center rounded-full bg-[var(--uy-deep)] px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--uy-paper)]"
+              >
+                {isSignIn ? ui.signupCta : ui.loginCta}
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="font-serif text-2xl text-slate-900 sm:text-3xl">{isSignIn ? ui.signInTitle : ui.formTitle}</h3>
+            <div className="inline-flex rounded-full border border-[var(--uy-line)] bg-[var(--uy-sky-pale)] p-1 text-sm">
+              <button
+                type="button"
+                onClick={() => setMode("sign-in")}
+                className={[
+                  "rounded-full px-4 py-2 transition",
+                  isSignIn ? "bg-[var(--uy-deep)] text-[var(--uy-paper)]" : "text-slate-600",
+                ].join(" ")}
+              >
+                {ui.loginCta}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("sign-up")}
+                className={[
+                  "rounded-full px-4 py-2 transition",
+                  !isSignIn ? "bg-[var(--uy-deep)] text-[var(--uy-paper)]" : "text-slate-600",
+                ].join(" ")}
+              >
+                {ui.signupCta}
+              </button>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-7 text-slate-600">{isSignIn ? ui.signInDescription : ui.formDescription}</p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSignup}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -475,60 +559,64 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
               </label>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
-                {ui.fullName}
-                <input
-                  type="text"
-                  required
-                  value={profileDraft.fullName}
-                  onChange={(event) => setProfileDraft((current) => ({ ...current, fullName: event.target.value }))}
-                  className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
-                  placeholder={locale === "es" ? "Nombre y apellido" : "Nom et prenom"}
-                />
-              </label>
-              <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
-                {ui.phone}
-                <input
-                  type="tel"
-                  required
-                  value={profileDraft.phone}
-                  onChange={(event) => setProfileDraft((current) => ({ ...current, phone: event.target.value }))}
-                  className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
-                  placeholder="+598 ..."
-                />
-              </label>
-            </div>
+            {!isSignIn ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
+                    {ui.fullName}
+                    <input
+                      type="text"
+                      required
+                      value={profileDraft.fullName}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, fullName: event.target.value }))}
+                      className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
+                      placeholder={locale === "es" ? "Nombre y apellido" : "Nom et prenom"}
+                    />
+                  </label>
+                  <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
+                    {ui.phone}
+                    <input
+                      type="tel"
+                      required
+                      value={profileDraft.phone}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, phone: event.target.value }))}
+                      className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
+                      placeholder="+598 ..."
+                    />
+                  </label>
+                </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
-                {ui.homeCity}
-                <select
-                  required
-                  value={profileDraft.homeCity}
-                  onChange={(event) => setProfileDraft((current) => ({ ...current, homeCity: event.target.value }))}
-                  className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
-                >
-                  {routeOptions.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-2 text-xs leading-5 text-slate-500">{ui.homeCityHint}</p>
-              </label>
-              <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
-                {ui.avatarUrl}
-                <input
-                  type="url"
-                  value={profileDraft.avatarUrl}
-                  onChange={(event) => setProfileDraft((current) => ({ ...current, avatarUrl: event.target.value }))}
-                  className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
-                  placeholder="https://..."
-                />
-                <p className="mt-2 text-xs leading-5 text-slate-500">{ui.avatarHint}</p>
-              </label>
-            </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
+                    {ui.homeCity}
+                    <select
+                      required
+                      value={profileDraft.homeCity}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, homeCity: event.target.value }))}
+                      className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
+                    >
+                      {routeOptions.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-xs leading-5 text-slate-500">{ui.homeCityHint}</p>
+                  </label>
+                  <label className="block rounded-3xl bg-[var(--uy-sky-pale)] p-4 text-sm text-slate-500">
+                    {ui.avatarUrl}
+                    <input
+                      type="url"
+                      value={profileDraft.avatarUrl}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, avatarUrl: event.target.value }))}
+                      className="mt-2 w-full bg-transparent text-base font-semibold text-slate-900 outline-none"
+                      placeholder="https://..."
+                    />
+                    <p className="mt-2 text-xs leading-5 text-slate-500">{ui.avatarHint}</p>
+                  </label>
+                </div>
+              </>
+            ) : null}
 
             {feedback ? <p className="text-sm text-[var(--uy-deep)]">{feedback}</p> : null}
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -538,21 +626,23 @@ export function WelcomeFlow({ locale, redirectPath }: WelcomeFlowProps) {
               disabled={isSubmitting}
               className="rounded-full bg-[var(--uy-deep)] px-5 py-3 text-sm font-semibold text-[var(--uy-paper)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? ui.submitLoading : ui.submitIdle}
+              {isSubmitting ? (isSignIn ? ui.loginSubmitLoading : ui.submitLoading) : (isSignIn ? ui.loginSubmitIdle : ui.submitIdle)}
             </button>
 
-            <div className="rounded-[28px] border border-[var(--uy-line)] bg-[linear-gradient(180deg,rgba(247,251,253,0.94),rgba(239,247,252,0.78))] p-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--uy-deep)]">{ui.forgotPassword}</p>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{ui.forgotDescription}</p>
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                disabled={isResettingPassword}
-                className="mt-4 rounded-full border border-[color:rgba(19,89,135,0.18)] px-5 py-3 text-sm font-semibold text-[var(--uy-deep)] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isResettingPassword ? ui.forgotSubmitLoading : ui.forgotSubmitIdle}
-              </button>
-            </div>
+            {isSignIn ? (
+              <div className="rounded-[28px] border border-[var(--uy-line)] bg-[linear-gradient(180deg,rgba(247,251,253,0.94),rgba(239,247,252,0.78))] p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--uy-deep)]">{ui.forgotPassword}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{ui.forgotDescription}</p>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isResettingPassword}
+                  className="mt-4 rounded-full border border-[color:rgba(19,89,135,0.18)] px-5 py-3 text-sm font-semibold text-[var(--uy-deep)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isResettingPassword ? ui.forgotSubmitLoading : ui.forgotSubmitIdle}
+                </button>
+              </div>
+            ) : null}
           </form>
         </article>
       </div>

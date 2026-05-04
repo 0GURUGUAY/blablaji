@@ -2,6 +2,9 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { isAdminEmail } from "@/lib/admin";
 import { routeOptions } from "@/lib/data";
 
+const profileSelect = "id, full_name, avatar_url, phone, home_city, role, passenger_score, passenger_score_band, completed_passenger_trips, passenger_cancellation_count, passenger_no_show_count, passenger_reports_count";
+const legacyProfileSelect = "id, full_name, avatar_url, phone, home_city, role";
+
 export type UserProfileRecord = {
   id: string;
   fullName: string;
@@ -57,12 +60,12 @@ function mapProfileRow(row: {
   phone: string | null;
   home_city: string;
   role: "rider" | "driver" | "admin";
-  passenger_score: number | null;
-  passenger_score_band: "trusted" | "watch" | "blocked" | null;
-  completed_passenger_trips: number | null;
-  passenger_cancellation_count: number | null;
-  passenger_no_show_count: number | null;
-  passenger_reports_count: number | null;
+  passenger_score?: number | null;
+  passenger_score_band?: "trusted" | "watch" | "blocked" | null;
+  completed_passenger_trips?: number | null;
+  passenger_cancellation_count?: number | null;
+  passenger_no_show_count?: number | null;
+  passenger_reports_count?: number | null;
 }): UserProfileRecord {
   return {
     id: row.id,
@@ -83,15 +86,40 @@ function mapProfileRow(row: {
 export async function fetchOwnProfile(client: SupabaseClient, userId: string) {
   const { data, error } = await client
     .from("profiles")
-    .select("id, full_name, avatar_url, phone, home_city, role, passenger_score, passenger_score_band, completed_passenger_trips, passenger_cancellation_count, passenger_no_show_count, passenger_reports_count")
+    .select(profileSelect)
     .eq("id", userId)
     .maybeSingle();
 
-  if (error) {
+  if (!error) {
+    return data ? mapProfileRow(data) : null;
+  }
+
+  const missingPassengerFields = [
+    "passenger_score",
+    "passenger_score_band",
+    "completed_passenger_trips",
+    "passenger_cancellation_count",
+    "passenger_no_show_count",
+    "passenger_reports_count",
+  ];
+  const errorMessage = `${error.message} ${error.details ?? ""} ${error.hint ?? ""}`;
+  const shouldFallbackToLegacySchema = missingPassengerFields.some((field) => errorMessage.includes(field));
+
+  if (!shouldFallbackToLegacySchema) {
     throw error;
   }
 
-  return data ? mapProfileRow(data) : null;
+  const { data: legacyData, error: legacyError } = await client
+    .from("profiles")
+    .select(legacyProfileSelect)
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (legacyError) {
+    throw legacyError;
+  }
+
+  return legacyData ? mapProfileRow(legacyData) : null;
 }
 
 export async function saveOwnProfile(client: SupabaseClient, user: User, draft: UserProfileDraft) {

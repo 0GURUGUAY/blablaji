@@ -16,6 +16,7 @@ const copy = {
   es: {
     guest: "Invitado",
     guestHint: "Conectate para ver tu espacio",
+    guestLogin: "LOGIN",
     account: "Cuenta",
     guestAccountCta: "Sea parte",
     vehicle: "Vehiculo",
@@ -26,6 +27,7 @@ const copy = {
   fr: {
     guest: "Invite",
     guestHint: "Connecte-toi pour voir ton espace",
+    guestLogin: "LOGIN",
     account: "Compte",
     guestAccountCta: "Sea parte",
     vehicle: "Vehicule",
@@ -136,16 +138,27 @@ export function HeaderUserPanel({ locale }: HeaderUserPanelProps) {
       </div>
 
       <div className="min-w-0 pr-2">
-        <div className="flex items-center gap-2">
-          <p className="max-w-[9rem] truncate text-sm font-semibold text-slate-900">{label}</p>
-          {isAdmin ? (
-            <span className="rounded-full bg-[var(--uy-sun-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--uy-deep-strong)]">
-              Admin
-            </span>
-          ) : null}
-        </div>
-        <p className="max-w-[11rem] truncate text-xs text-slate-500">{userEmail}</p>
-        {profile?.homeCity ? <p className="max-w-[11rem] truncate text-[11px] text-slate-400">{profile.homeCity}</p> : null}
+        {user ? (
+          <>
+            <div className="flex items-center gap-2">
+              <p className="max-w-[9rem] truncate text-sm font-semibold text-slate-900">{label}</p>
+              {isAdmin ? (
+                <span className="rounded-full bg-[var(--uy-sun-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--uy-deep-strong)]">
+                  Admin
+                </span>
+              ) : null}
+            </div>
+            <p className="max-w-[11rem] truncate text-xs text-slate-500">{userEmail}</p>
+            {profile?.homeCity ? <p className="max-w-[11rem] truncate text-[11px] text-slate-400">{profile.homeCity}</p> : null}
+          </>
+        ) : (
+          <Link
+            href={accountHref}
+            className="inline-flex items-center justify-center rounded-full bg-[var(--uy-deep)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--uy-paper)] transition hover:bg-[#0d6fb7]"
+          >
+            {ui.guestLogin}
+          </Link>
+        )}
       </div>
 
       <div className="flex items-center gap-1 border-l border-[var(--uy-line)] pl-2 text-xs font-semibold">

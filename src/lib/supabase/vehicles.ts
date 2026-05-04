@@ -1,5 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { getProfileFallback, saveOwnProfile } from "@/lib/supabase/profiles";
+import { fetchOwnProfile, getProfileFallback, saveOwnProfile } from "@/lib/supabase/profiles";
 
 export type DriverVehicleRecord = {
   id: string;
@@ -50,7 +50,13 @@ function mapVehicleRow(row: {
 }
 
 export async function ensureDriverProfile(client: SupabaseClient, user: User) {
-  await saveOwnProfile(client, user, getProfileFallback(user));
+  const existingProfile = await fetchOwnProfile(client, user.id);
+
+  if (existingProfile) {
+    return existingProfile;
+  }
+
+  return saveOwnProfile(client, user, getProfileFallback(user));
 }
 
 export async function fetchDriverVehicle(client: SupabaseClient, userId: string) {
