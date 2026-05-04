@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { StaticRedirectPage } from "@/components/static-redirect-page";
 import { defaultLocale, getLocalePath } from "@/lib/locale";
 
 export default function PublishPage() {
-  redirect(getLocalePath(defaultLocale, "/publish"));
+  return <StaticRedirectPage href={getLocalePath(defaultLocale, "/publish")} label="Abrir publicar" />;
 }

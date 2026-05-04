@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { StaticRedirectPage } from "@/components/static-redirect-page";
 import { defaultLocale, getLocalePath } from "@/lib/locale";
 
 export default function AccountPage() {
-  redirect(getLocalePath(defaultLocale, "/account"));
+  return <StaticRedirectPage href={getLocalePath(defaultLocale, "/account")} label="Abrir cuenta" />;
 }

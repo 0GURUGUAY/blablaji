@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { StaticRedirectPage } from "@/components/static-redirect-page";
 import { defaultLocale, getLocalePath } from "@/lib/locale";
 
 export default function AdminPage() {
-  redirect(getLocalePath(defaultLocale, "/admin"));
+  return <StaticRedirectPage href={getLocalePath(defaultLocale, "/admin")} label="Abrir admin" />;
 }

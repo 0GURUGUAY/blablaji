@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { StaticRedirectPage } from "@/components/static-redirect-page";
 import { defaultLocale, getLocalePath } from "@/lib/locale";
 
 export default function HomePage() {
-  redirect(getLocalePath(defaultLocale));
+  return <StaticRedirectPage href={getLocalePath(defaultLocale)} label="Abrir la home" />;
 }

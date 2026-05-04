@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { StaticRedirectPage } from "@/components/static-redirect-page";
 import { defaultLocale, getLocalePath } from "@/lib/locale";
 
 export default function MessagesPage() {
-  redirect(getLocalePath(defaultLocale, "/messages"));
+  return <StaticRedirectPage href={getLocalePath(defaultLocale, "/messages")} label="Abrir mensajes" />;
 }
