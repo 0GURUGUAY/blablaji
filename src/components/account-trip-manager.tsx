@@ -152,12 +152,19 @@ async function loadDriverDataSnapshot(
   supabase: ReturnType<typeof getSupabaseBrowserClient>,
   userId: string,
 ) {
-  const [rides, bookings] = await Promise.all([
-    fetchOwnManagedRides(supabase, userId),
-    fetchDriverRideBookings(supabase),
-  ]);
+  const rides = await fetchOwnManagedRides(supabase, userId);
 
-  return { rides, bookings };
+  try {
+    const bookings = await fetchDriverRideBookings(supabase);
+
+    return { rides, bookings, bookingsError: null };
+  } catch (error) {
+    return {
+      rides,
+      bookings: [],
+      bookingsError: error instanceof Error ? error.message : "",
+    };
+  }
 }
 
 export function AccountTripManager({ locale }: AccountTripManagerProps) {
@@ -169,6 +176,7 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [bookingsError, setBookingsError] = useState<string | null>(null);
   const [editingRideId, setEditingRideId] = useState<string | null>(null);
   const [form, setForm] = useState<ManagedRideDraft | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -185,9 +193,11 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
       setSession(nextSession);
       setFeedback(null);
       setError(null);
+      setBookingsError(null);
 
       if (!nextSession?.user) {
         setRides([]);
+        setBookings([]);
         setEditingRideId(null);
         setForm(null);
         setIsLoading(false);
@@ -203,9 +213,10 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
 
         setRides(snapshot.rides);
         setBookings(snapshot.bookings);
+        setBookingsError(snapshot.bookingsError ? `${ui.passengersLoadError} ${snapshot.bookingsError}`.trim() : null);
       } catch (loadError) {
         if (isMounted) {
-          setError(`${ui.passengersLoadError} ${loadError instanceof Error ? loadError.message : ""}`.trim());
+          setError(`${ui.loadError} ${loadError instanceof Error ? loadError.message : ""}`.trim());
         }
       } finally {
         if (isMounted) {
@@ -229,12 +240,13 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, ui.passengersLoadError]);
+  }, [supabase, ui.loadError, ui.passengersLoadError]);
 
   async function reloadRides(userId: string) {
     const snapshot = await loadDriverDataSnapshot(supabase, userId);
     setRides(snapshot.rides);
     setBookings(snapshot.bookings);
+    setBookingsError(snapshot.bookingsError ? `${ui.passengersLoadError} ${snapshot.bookingsError}`.trim() : null);
   }
 
   function startEditing(ride: ManagedRideRecord) {
@@ -321,6 +333,7 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
       {!isLoading && !session?.user ? <p className="rounded-2xl bg-[var(--uy-sky-pale)] px-4 py-3 text-sm text-slate-600">{ui.authRequired}</p> : null}
       {feedback ? <p className="text-sm text-[var(--uy-deep)]">{feedback}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {bookingsError ? <p className="text-sm text-amber-700">{bookingsError}</p> : null}
       {!isLoading && session?.user && rides.length === 0 ? <p className="rounded-2xl bg-[var(--uy-sky-pale)] px-4 py-3 text-sm text-slate-600">{ui.empty}</p> : null}
 
       {rides.length > 0 ? (
@@ -364,6 +377,7 @@ export function AccountTripManager({ locale }: AccountTripManagerProps) {
                     <span className="rounded-full bg-[var(--uy-sky-pale)] px-3 py-1 text-xs font-semibold text-[var(--uy-deep)]">{rideBookings.length}</span>
                   </div>
 
+                  {bookingsError ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">{bookingsError}</p> : null}
                   {rideBookings.length === 0 ? <p className="rounded-2xl bg-[var(--uy-sky-pale)] px-4 py-3 text-sm text-slate-600">{ui.passengersEmpty}</p> : null}
 
                   {rideBookings.length > 0 ? (
